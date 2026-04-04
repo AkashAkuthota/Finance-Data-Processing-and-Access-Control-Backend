@@ -4,15 +4,15 @@ import os
 from dotenv import load_dotenv
 import logging
 
-# Load environment variables
-load_dotenv()
+# Load environment variables (only in development)
+if os.getenv("ENVIRONMENT") != "production":
+    load_dotenv()
 
-# Configure logging
+# Configure logging (production-friendly)
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler('app.log'),
         logging.StreamHandler()
     ]
 )
@@ -61,9 +61,9 @@ class Settings(BaseSettings):
         environment = os.getenv("ENVIRONMENT", "development")
         sslmode = "require" if environment == "production" else "disable"
 
-        # If DATABASE_URL is directly provided, use it
+        # If DATABASE_URL is directly provided, use it (fix postgres://)
         if v:
-            return v
+            return v.replace("postgres://", "postgresql://")
 
         # Otherwise, construct from individual variables
         db_user = os.getenv("DB_USER")
@@ -99,8 +99,10 @@ class Settings(BaseSettings):
     @field_validator("SECRET_KEY", mode="after")
     @classmethod
     def validate_secret_key(cls, v):
+
         """Ensure SECRET_KEY is not default value in production"""
         environment = os.getenv("ENVIRONMENT", "development")
+        
         if v == "supersecretkey" and environment == "production":
             raise ValueError(
                 "SECRET_KEY must not be default in production! "
@@ -111,7 +113,9 @@ class Settings(BaseSettings):
     @field_validator("SECURE_COOKIES", mode="before")
     @classmethod
     def set_secure_cookies(cls, v):
+
         """Automatically enable secure cookies in production"""
+
         environment = os.getenv("ENVIRONMENT", "development")
         return environment == "production"
 
@@ -123,7 +127,7 @@ class Settings(BaseSettings):
         super().__init__(**data)
         # Log configuration safely (mask password)
         safe_url = self.DATABASE_URL
-        if self.DB_PASSWORD:
+        if self.DB_PASSWORD and self.DB_PASSWORD in safe_url:
             safe_url = self.DATABASE_URL.replace(self.DB_PASSWORD, "****")
         logger.info(f"Database: {safe_url}")
         logger.info(f"Environment: {self.ENVIRONMENT}")

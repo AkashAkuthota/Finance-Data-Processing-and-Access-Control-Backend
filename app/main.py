@@ -30,7 +30,7 @@ Base.metadata.create_all(bind=engine)
 logger.info("Database tables created successfully")
 
 
-# 🔥 ROLE SEEDING
+# ROLE SEEDING
 def seed_roles():
     db: Session = SessionLocal()
 
