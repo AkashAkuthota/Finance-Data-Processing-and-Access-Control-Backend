@@ -24,10 +24,10 @@ app = FastAPI(
     version="1.0.0"
 )
 
-
-@app.post("/health")
-def health_check():
-    return {"status": "fastapi backend is running smoothly!"}
+#add root health endpoint
+@app.get("/")
+def root():
+    return {"message": "FastAPI Product Inventory API is running"}
 
 
 # Create tables
