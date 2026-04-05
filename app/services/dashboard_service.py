@@ -1,7 +1,8 @@
 from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy import case, func
 from app.models.financial_record import FinancialRecord
 import logging
+
 
 logger = logging.getLogger(__name__)
 
@@ -51,8 +52,22 @@ def get_recent_transactions(db: Session, limit: int = 5):
 
 def get_monthly_trends(db: Session):
     result = db.query(
-        func.date_trunc('month', FinancialRecord.date),
-        func.sum(FinancialRecord.amount)
+        func.date_trunc('month', FinancialRecord.date).label("month"),
+
+        func.sum(
+            case(
+                (FinancialRecord.type == "income", FinancialRecord.amount),
+                else_=0
+            )
+        ).label("income"),
+
+        func.sum(
+            case(
+                (FinancialRecord.type == "expense", FinancialRecord.amount),
+                else_=0
+            )
+        ).label("expense")
+
     ).filter(
         FinancialRecord.is_deleted == False
     ).group_by(
@@ -61,6 +76,14 @@ def get_monthly_trends(db: Session):
         func.date_trunc('month', FinancialRecord.date)
     ).all()
 
-    trends = [{"month": str(r[0]), "total": r[1]} for r in result]
+    trends = [
+        {
+            "month": str(r.month.date()),  # cleaner format
+            "income": float(r.income or 0),
+            "expense": float(r.expense or 0)
+        }
+        for r in result
+    ]
+
     logger.info(f"Monthly trends generated for {len(trends)} months")
     return trends

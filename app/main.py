@@ -25,6 +25,11 @@ app = FastAPI(
 )
 
 
+@app.post("/health")
+def health_check():
+    return {"status": "fastapi backend is running smoothly!"}
+
+
 # Create tables
 Base.metadata.create_all(bind=engine)
 logger.info("Database tables created successfully")

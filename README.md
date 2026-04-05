@@ -4,6 +4,17 @@ A FastAPI-based backend system for managing financial records with **role-based 
 
 ---
 
+## 🚀 Live API
+
+- **Base URL:**  
+  https://finance-data-processing-and-access-vywg.onrender.com
+
+- **Swagger Docs (Test APIs):**  
+  https://finance-data-processing-and-access-vywg.onrender.com/docs
+
+⚠️ Note:  
+Authentication is required for protected endpoints. Use `/auth/login` to obtain an access token.
+
 ## 🚀 Features
 
 ### 🔐 Authentication & Security

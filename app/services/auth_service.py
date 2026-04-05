@@ -12,6 +12,9 @@ def login_user(db: Session, email: str, password: str):
 
     if not user or not verify_password(password, user.hashed_password):
         return None
+    
+    if not user.is_active:
+        return None
 
     access_token = create_access_token({"sub": user.email})
     refresh_token_value = create_refresh_token()
